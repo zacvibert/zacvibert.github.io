@@ -350,7 +350,9 @@ it runs the engine, edits files, commits and packages autonomously in this repo.
 
 ---
 
-## 11. First prompt to start development
+## 11. First prompt to start development — SUPERSEDED by §12.6
+
+> (Original Ikemen GO prompt kept for reference; the project now targets the browser, see §12.)
 
 > Read docs/FIGHTING_GAME_PLAN.md. Start Phase 0 and Phase 2 setup:
 > 1. Restructure the repo per §5 (keep the GitHub Pages site working).
@@ -365,3 +367,95 @@ it runs the engine, edits files, commits and packages autonomously in this repo.
 > 4. Tell me exactly which manual steps I must do (engine download, Fighter Factory
 >    SFF packing) and verify everything else yourself.
 > Commit and push to this branch as you go.
+
+---
+
+## 12. DECISION (2026-07-18): playable in-browser — revised plan
+
+The game will run in the browser, playable directly at **https://zacvibert.github.io**
+(and optionally on Vercel). This supersedes the Ikemen GO desktop plan above; the
+research, scope warnings, legal flags, art workflow (§7), stage design rules (§8), and
+character design-doc system (§6a) all still apply unchanged.
+
+### 12.1 Consequences (honest trade-offs)
+
+- We now build the engine ourselves: fixed-timestep game loop, input buffering and
+  motion parsing, hitbox/hurtbox resolution, state machines, CPU AI, menus, lifebars.
+  This is all code — Claude's strength — but it replaces "free" engine features.
+- **Online rollback netcode drops out of v1.** Local multiplayer (shared keyboard +
+  gamepads) ships in v1; online later via WebRTC + rollback if ever (big project).
+- Upside: zero-install distribution — anyone with the URL can play instantly; PR
+  preview deploys let you playtest every change from any device.
+
+### 12.2 Revised technology stack
+
+| Layer | Choice |
+|---|---|
+| Language | **TypeScript** (strict) |
+| Build tool | **Vite** (dev server + production bundle) |
+| Rendering | **Canvas 2D**, fixed internal resolution (e.g. 640×360), integer-scaled, `image-rendering: pixelated` |
+| Game loop | Fixed 60 ticks/sec update, decoupled render (deterministic — keeps a future rollback door open) |
+| Characters | **Data-driven JSON**: frame data, boxes, cancels per move + sprite-sheet PNGs (replaces .air/.cmd/CNS) |
+| Input | Keyboard + **Gamepad API**; ring-buffer input history for motion inputs (QCF etc.) |
+| Audio | Web Audio API; OGG/M4A assets |
+| Framework | None — no Phaser/engine dependency; a fighting game needs custom boxes/timing anyway and vanilla keeps every line understandable |
+| Testing | Vitest for engine logic (frame data, box overlap, input parser — all pure functions) |
+
+### 12.3 Revised repository structure
+
+```
+zacvibert.github.io/
+├── index.html              # the game page (Pages serves repo root)
+├── src/
+│   ├── engine/             # loop, input, collision, camera, audio, renderer
+│   ├── game/               # match flow, rounds, health, menus, CPU AI
+│   └── characters/         # loader + per-character logic hooks
+├── public/assets/
+│   ├── characters/<name>/  # sheet.png + data.json
+│   ├── stages/  ui/  audio/
+├── docs/                   # this plan, design docs (unchanged)
+├── art-src/                # Aseprite sources (unchanged)
+├── ASSETS.md
+└── .github/workflows/deploy.yml   # build + deploy to GitHub Pages
+```
+
+### 12.4 Shipping to GitHub Pages (primary — your existing site)
+
+`zacvibert.github.io` is a *user site*: GitHub Pages serves it at the root URL. Since
+Vite needs a build step, deploy with the official Pages Action:
+
+1. Repo → **Settings → Pages → Source: "GitHub Actions"** (one-time, in the web UI).
+2. Add `.github/workflows/deploy.yml`: on every push to `main`, it runs
+   `npm ci && npm run build` and publishes the `dist/` folder via
+   `actions/upload-pages-artifact` + `actions/deploy-pages`. (Claude writes this file.)
+3. Ship = **merge to `main`**. ~1 minute later the new build is live at
+   https://zacvibert.github.io. Nothing else to do, ever.
+
+### 12.5 Shipping to Vercel (optional mirror — adds per-PR preview URLs)
+
+Dashboard route (no CLI needed):
+1. Go to **vercel.com** → sign up / log in **with GitHub**.
+2. **Add New… → Project** → Import `zacvibert/zacvibert.github.io`.
+3. Framework preset: **Vite** (auto-detected). Build command `npm run build`,
+   output directory `dist` (defaults are correct). → **Deploy**.
+4. You get a permanent URL like `https://<project>.vercel.app`. From then on:
+   every push to `main` = production deploy; **every PR gets its own preview URL**
+   posted automatically on the PR — ideal for playtesting branches on your phone.
+
+CLI route (equivalent): `npm i -g vercel` → `vercel` in the repo (links project,
+deploys a preview) → `vercel --prod` for production.
+
+### 12.6 Revised first prompt to start development
+
+> Read docs/FIGHTING_GAME_PLAN.md §12. Start the browser build:
+> 1. Scaffold Vite + TypeScript per §12.3, keeping docs/ intact.
+> 2. Add the GitHub Pages deploy workflow (§12.4); I'll flip Settings → Pages to
+>    "GitHub Actions" myself.
+> 3. Build the engine core: 60Hz fixed-timestep loop, 640×360 pixel-scaled canvas,
+>    keyboard + gamepad input with an input-history buffer and QCF/DP motion parser,
+>    and the hitbox/hurtbox collision system with a debug overlay toggle.
+> 4. Create the Fighter Zero grey-box character from JSON frame data (idle, walk,
+>    jump, crouch, block, 6 normals, fireball, uppercut, throw, hit reactions,
+>    knockdown) and a placeholder stage, so two players can fight on one keyboard.
+> 5. Add Vitest tests for the input parser and collision math.
+> Commit and push to this branch as you go; the PR preview is my playtest build.
