@@ -5,6 +5,7 @@ import { VIEW_W, VIEW_H } from '../engine/renderer';
 import { Fighter, GROUND_Y, neutralInput, type FrameInput } from './fighter';
 import { Projectile } from './projectile';
 import { drawFighterSprite } from './pose';
+import { animKeyFor, pickFrame, type SpriteSet } from './sprites';
 import type { CharacterData } from './types';
 
 export const STAGE_W = 960;
@@ -28,6 +29,7 @@ export class Match {
   hitstop = 0;
   camX = 0;
   animTick = 0;
+  spriteSets: [SpriteSet | null, SpriteSet | null] = [null, null];
   announce = '';
   winner: 0 | 1 | null = null;
   private prevHeld: [PadState, PadState] = [emptyPad(), emptyPad()];
@@ -338,7 +340,16 @@ export class Match {
     const celebrating =
       (this.phase === 'roundEnd' || this.phase === 'matchOver') &&
       f.health > 0 && this.players[1 - i].health < f.health;
-    drawFighterSprite(ctx, f, px, pal, this.animTick, celebrating);
+    const set = this.spriteSets[i];
+    const key = animKeyFor(f);
+    if (set?.has(key)) {
+      const m = f.state === 'attack' ? f.move : f.state === 'jump' ? f.airMove : null;
+      const total = m ? m.startup + m.active + m.recovery : undefined;
+      const sf = f.state === 'jump' && f.airMove ? f.airMoveSf : f.sf;
+      set.draw(ctx, key, pickFrame(set.meta.animations[key], sf, total), px, Math.round(f.y), f.facing);
+    } else {
+      drawFighterSprite(ctx, f, px, pal, this.animTick, celebrating);
+    }
     // block spark
     if (f.state === 'blockstun' && f.sf < 6) {
       ctx.fillStyle = '#8fe0ff';

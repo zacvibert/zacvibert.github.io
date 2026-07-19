@@ -70,11 +70,10 @@ The upgrade path, one animation at a time:
 3. **Pixel the frames in Aseprite** at a fixed cell size (128×128, feet centred
    at the bottom-middle of the cell). Start with idle (4–6 frames) only.
 4. **Export** `sheet.png` (one row per animation) into
-   `public/assets/characters/[name]/` plus a `frames.json` Claude will spec for
-   you, then prompt: *"Load [name]'s sprite sheet and use it instead of the
-   procedural renderer for the animations it contains; keep procedural for the
-   rest."* Mixed rendering is supported by design, so you can replace one
-   animation at a time and the game keeps working throughout.
+   `public/assets/characters/[name]/` per **docs/SPRITE_SPEC.md** — the loader
+   is already built: any animation present in the sheet automatically replaces
+   the procedural renderer, and everything else keeps the procedural look, so
+   you can upgrade one animation at a time and the game keeps working throughout.
 5. Log every asset in `ASSETS.md` (who made it, tool, licence) — Claude refuses
    to wire in files that aren't logged.
 

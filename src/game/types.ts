@@ -32,6 +32,7 @@ export interface AppearancePalette {
 }
 
 export interface CharacterData {
+  id: string; // folder name under public/assets/characters/
   name: string;
   appearance: AppearancePalette;
   altAppearance: AppearancePalette;

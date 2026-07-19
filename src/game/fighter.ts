@@ -37,6 +37,7 @@ export class Fighter {
   move: AttackData | null = null;
   moveHasHit = false;
   airMove: AttackData | null = null;
+  airMoveId: 'jP' | 'jK' | null = null;
   airMoveSf = 0;
   stun = 0;
   invuln = 0;
@@ -83,6 +84,7 @@ export class Fighter {
     this.moveId = null;
     this.move = null;
     this.airMove = null;
+    this.airMoveId = null;
     this.stun = 0;
     this.invuln = 0;
     this.wantsProjectile = false;
@@ -196,8 +198,8 @@ export class Fighter {
 
       case 'jump': {
         if (!this.airMove) {
-          if (PUNCHES.some((b) => inp.pressed[b])) { this.airMove = this.data.moves.jP; this.airMoveSf = 0; this.moveHasHit = false; }
-          else if (KICKS.some((b) => inp.pressed[b])) { this.airMove = this.data.moves.jK; this.airMoveSf = 0; this.moveHasHit = false; }
+          if (PUNCHES.some((b) => inp.pressed[b])) { this.airMove = this.data.moves.jP; this.airMoveId = 'jP'; this.airMoveSf = 0; this.moveHasHit = false; }
+          else if (KICKS.some((b) => inp.pressed[b])) { this.airMove = this.data.moves.jK; this.airMoveId = 'jK'; this.airMoveSf = 0; this.moveHasHit = false; }
         } else {
           this.airMoveSf++;
         }
@@ -277,6 +279,7 @@ export class Fighter {
     this.y = GROUND_Y;
     this.vx = this.vy = 0;
     this.airMove = null;
+    this.airMoveId = null;
     this.setState('idle');
   }
 
