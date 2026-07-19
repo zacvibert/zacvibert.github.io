@@ -4,6 +4,7 @@ import { emptyPad } from '../engine/input';
 import { VIEW_W, VIEW_H } from '../engine/renderer';
 import { Fighter, GROUND_Y, neutralInput, type FrameInput } from './fighter';
 import { Projectile } from './projectile';
+import { drawFighterSprite } from './pose';
 import type { CharacterData } from './types';
 
 export const STAGE_W = 960;
@@ -26,6 +27,7 @@ export class Match {
   timerTicks = 0;
   hitstop = 0;
   camX = 0;
+  animTick = 0;
   announce = '';
   winner: 0 | 1 | null = null;
   private prevHeld: [PadState, PadState] = [emptyPad(), emptyPad()];
@@ -63,6 +65,7 @@ export class Match {
       this.hitstop--;
       return;
     }
+    this.animTick++;
 
     const [p1, p2] = this.players;
     for (const i of [0, 1] as const) {
@@ -262,78 +265,124 @@ export class Match {
   }
 
   private drawStage(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = '#1b2440';
-    ctx.fillRect(0, 0, VIEW_W, 180);
-    ctx.fillStyle = '#273356';
-    ctx.fillRect(0, 180, VIEW_W, GROUND_Y - 180);
-    // far skyline (slow parallax)
-    ctx.fillStyle = '#202a49';
+    // sunset sky
+    const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+    sky.addColorStop(0, '#2b1a4e');
+    sky.addColorStop(0.45, '#7a3558');
+    sky.addColorStop(0.8, '#d96a4e');
+    sky.addColorStop(1, '#f2a556');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, VIEW_W, GROUND_Y);
+    // sun
+    ctx.fillStyle = '#ffd98a';
+    ctx.beginPath();
+    ctx.arc(this.sx(560, 0.15), 150, 42, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,217,138,0.25)';
+    ctx.beginPath();
+    ctx.arc(this.sx(560, 0.15), 150, 58, 0, Math.PI * 2);
+    ctx.fill();
+    // clouds
+    ctx.fillStyle = 'rgba(255,190,160,0.35)';
+    for (const [cx, cy, cw] of [[80, 70, 120], [340, 45, 90], [640, 95, 150], [900, 60, 110]] as const) {
+      ctx.fillRect(this.sx(cx, 0.2), cy, cw, 10);
+      ctx.fillRect(this.sx(cx, 0.2) + 18, cy - 8, cw * 0.6, 8);
+    }
+    // far skyline silhouette with lit windows
+    ctx.fillStyle = '#3a2247';
     FAR_BUILDINGS.forEach((h, i) => {
-      ctx.fillRect(this.sx(i * 90, 0.3), GROUND_Y - h - 40, 70, h + 40);
+      const bx = this.sx(i * 90, 0.35);
+      ctx.fillRect(bx, GROUND_Y - h - 46, 70, h + 46);
+      ctx.fillStyle = 'rgba(255,214,120,0.55)';
+      for (let wy = GROUND_Y - h - 34; wy < GROUND_Y - 26; wy += 16) {
+        for (let wx = bx + 8; wx < bx + 62; wx += 16) {
+          if ((wx + wy + i * 7) % 48 < 30) ctx.fillRect(wx, wy, 5, 7);
+        }
+      }
+      ctx.fillStyle = '#3a2247';
     });
-    // mid pillars
-    ctx.fillStyle = '#2e3a63';
+    // mid-ground rooftop band with railing
+    ctx.fillStyle = '#552e44';
+    ctx.fillRect(0, GROUND_Y - 88, VIEW_W, 88);
+    ctx.fillStyle = '#6b3a50';
     for (const px of MID_PILLARS) {
-      ctx.fillRect(this.sx(px, 0.6), GROUND_Y - 150, 26, 150);
+      ctx.fillRect(this.sx(px, 0.6), GROUND_Y - 118, 22, 118);
+      ctx.fillRect(this.sx(px, 0.6) - 6, GROUND_Y - 124, 34, 8);
     }
-    // floor
-    ctx.fillStyle = '#3a3746';
+    ctx.fillStyle = '#7c4257';
+    ctx.fillRect(0, GROUND_Y - 92, VIEW_W, 6);
+    // fighting floor
+    const floor = ctx.createLinearGradient(0, GROUND_Y, 0, VIEW_H);
+    floor.addColorStop(0, '#8a5a4a');
+    floor.addColorStop(1, '#4a2f2a');
+    ctx.fillStyle = floor;
     ctx.fillRect(0, GROUND_Y, VIEW_W, VIEW_H - GROUND_Y);
-    ctx.fillStyle = '#575269';
-    ctx.fillRect(0, GROUND_Y, VIEW_W, 2);
-    ctx.fillStyle = '#443f52';
-    for (let gx = 0; gx <= STAGE_W; gx += 40) {
-      ctx.fillRect(this.sx(gx), GROUND_Y + 4, 2, VIEW_H - GROUND_Y - 4);
+    ctx.fillStyle = '#a5705a';
+    ctx.fillRect(0, GROUND_Y, VIEW_W, 3);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    for (let gx = 0; gx <= STAGE_W; gx += 64) {
+      ctx.fillRect(this.sx(gx), GROUND_Y + 6, 2, VIEW_H - GROUND_Y - 6);
     }
+    ctx.fillRect(0, GROUND_Y + 22, VIEW_W, 2);
   }
 
   private drawFighter(ctx: CanvasRenderingContext2D, i: 0 | 1): void {
     const f = this.players[i];
-    const base = i === 0 ? '#46c8a5' : '#e8794e';
-    const dark = i === 0 ? '#2c8a72' : '#a54f31';
     const px = this.sx(f.x);
-
+    const pal = i === 0 ? f.data.appearance : f.data.altAppearance;
     // shadow
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.fillRect(px - 22, GROUND_Y - 3, 44, 6);
-
-    if (f.state === 'knockdown' || (f.state === 'launched' && f.vy > 4)) {
-      ctx.fillStyle = dark;
-      ctx.fillRect(px - 40, Math.round(f.y) - 24, 80, 24);
-      return;
+    ctx.beginPath();
+    ctx.ellipse(px, GROUND_Y + 2, 24, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const celebrating =
+      (this.phase === 'roundEnd' || this.phase === 'matchOver') &&
+      f.health > 0 && this.players[1 - i].health < f.health;
+    drawFighterSprite(ctx, f, px, pal, this.animTick, celebrating);
+    // block spark
+    if (f.state === 'blockstun' && f.sf < 6) {
+      ctx.fillStyle = '#8fe0ff';
+      ctx.beginPath();
+      ctx.arc(px + f.facing * 24, Math.round(f.y) - 60, 8 - f.sf, 0, Math.PI * 2);
+      ctx.fill();
     }
-
-    const pb = f.pushbox();
-    const flash = (f.state === 'hitstun' || f.state === 'thrown') && f.sf % 4 < 2;
-    ctx.fillStyle = flash ? '#ffffff' : base;
-    ctx.fillRect(this.sx(pb.x), Math.round(pb.y), pb.w, pb.h);
-    // head block with an eye marker showing facing
-    ctx.fillStyle = dark;
-    const headX = px + (f.facing === 1 ? 2 : -18);
-    ctx.fillRect(headX, Math.round(pb.y) - 2, 16, 14);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(px + (f.facing === 1 ? 12 : -16), Math.round(pb.y) + 2, 4, 4);
-
-    // active hitbox shown as the striking limb
-    for (const hb of f.hitboxes()) {
+    // hit spark
+    if (f.state === 'hitstun' && f.sf < 6) {
       ctx.fillStyle = '#ffd23e';
-      ctx.fillRect(this.sx(hb.x), Math.round(hb.y), hb.w, hb.h);
-    }
-    // block shield
-    if (f.state === 'blockstun') {
-      ctx.fillStyle = '#6fd7ff';
-      const shieldX = f.facing === 1 ? this.sx(pb.x) + pb.w : this.sx(pb.x) - 4;
-      ctx.fillRect(shieldX, Math.round(pb.y), 4, pb.h);
+      const sy = Math.round(f.y) - 70;
+      const sxp = px + f.facing * 18;
+      for (let s = 0; s < 5; s++) {
+        const a = (s / 5) * Math.PI * 2 + f.sf;
+        ctx.fillRect(sxp + Math.cos(a) * (4 + f.sf * 2), sy + Math.sin(a) * (4 + f.sf * 2), 4, 4);
+      }
     }
   }
 
   private drawProjectiles(ctx: CanvasRenderingContext2D): void {
     for (const pr of this.projectiles) {
       const r = pr.rect();
-      ctx.fillStyle = '#ffd23e';
-      ctx.fillRect(this.sx(r.x), Math.round(r.y), r.w, r.h);
-      ctx.fillStyle = 'rgba(255,210,62,0.4)';
-      ctx.fillRect(this.sx(r.x) - Math.sign(pr.vx) * 18, Math.round(r.y) + 4, 16, r.h - 8);
+      const cx = this.sx(r.x) + r.w / 2;
+      const cy = Math.round(r.y) + r.h / 2;
+      const pulse = 1 + Math.sin(this.animTick / 2) * 0.15;
+      ctx.fillStyle = 'rgba(120,200,255,0.35)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 15 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#9fdcff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 10 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(cx - Math.sign(pr.vx) * 2, cy, 5, 0, Math.PI * 2);
+      ctx.fill();
+      // trail
+      ctx.fillStyle = 'rgba(120,200,255,0.25)';
+      for (let t = 1; t <= 3; t++) {
+        ctx.beginPath();
+        ctx.arc(cx - Math.sign(pr.vx) * t * 12, cy, 10 - t * 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
 
@@ -360,51 +409,72 @@ export class Match {
   }
 
   private drawHud(ctx: CanvasRenderingContext2D): void {
-    const barW = 250;
+    const barW = 246;
     for (const i of [0, 1] as const) {
       const f = this.players[i];
-      const x = i === 0 ? 20 : VIEW_W - 20 - barW;
-      ctx.fillStyle = '#101018';
-      ctx.fillRect(x - 2, 14, barW + 4, 22);
-      ctx.fillStyle = '#5a2430';
+      const x = i === 0 ? 22 : VIEW_W - 22 - barW;
+      // bordered bar frame
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x - 3, 13, barW + 6, 24);
+      ctx.fillStyle = '#14141e';
+      ctx.fillRect(x - 1, 15, barW + 2, 20);
+      ctx.fillStyle = '#7a1f2a';
       ctx.fillRect(x, 16, barW, 18);
       const ratio = f.health / f.data.health;
       const w = Math.round(barW * ratio);
-      ctx.fillStyle = ratio > 0.5 ? '#ffe94a' : ratio > 0.25 ? '#ff9d3b' : '#ff4b4b';
+      const grad = ctx.createLinearGradient(0, 16, 0, 34);
+      grad.addColorStop(0, '#fff7a8');
+      grad.addColorStop(0.5, '#ffe94a');
+      grad.addColorStop(1, '#e0a91f');
+      ctx.fillStyle = ratio > 0.25 ? grad : '#ff4b4b';
       ctx.fillRect(i === 0 ? x + barW - w : x, 16, w, 18);
       // round pips
       for (let p = 0; p < 2; p++) {
+        const pipX = i === 0 ? x + p * 16 : x + barW - 12 - p * 16;
+        ctx.fillStyle = '#14141e';
+        ctx.fillRect(pipX - 1, 41, 14, 10);
         ctx.fillStyle = f.wins > p ? '#ffe94a' : '#3a3a4c';
-        const pipX = i === 0 ? x + p * 14 : x + barW - 10 - p * 14;
-        ctx.fillRect(pipX, 40, 10, 6);
+        ctx.fillRect(pipX, 42, 12, 8);
       }
-      ctx.fillStyle = '#cfd3e6';
-      ctx.font = '10px monospace';
+      // name plate
+      ctx.fillStyle = 'rgba(20,20,30,0.75)';
+      const nameW = 110;
+      ctx.fillRect(i === 0 ? x : x + barW - nameW, 54, nameW, 14);
+      ctx.fillStyle = '#ffe94a';
+      ctx.font = 'bold 10px monospace';
       ctx.textAlign = i === 0 ? 'left' : 'right';
-      ctx.fillText(`P${i + 1} ${f.data.name}`, i === 0 ? x : x + barW, 56);
+      ctx.fillText(`${f.data.name}`, i === 0 ? x + 4 : x + barW - 4, 64);
     }
-    ctx.fillStyle = '#101018';
-    ctx.fillRect(VIEW_W / 2 - 26, 10, 52, 30);
+    // timer plate
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(VIEW_W / 2 - 30, 8, 60, 36);
+    ctx.fillStyle = '#14141e';
+    ctx.fillRect(VIEW_W / 2 - 28, 10, 56, 32);
     ctx.fillStyle = this.timer <= 10 ? '#ff4b4b' : '#ffffff';
-    ctx.font = 'bold 22px monospace';
+    ctx.font = 'bold 24px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(String(this.timer).padStart(2, '0'), VIEW_W / 2, 33);
+    ctx.fillText(String(this.timer).padStart(2, '0'), VIEW_W / 2, 34);
+  }
+
+  private bigText(ctx: CanvasRenderingContext2D, text: string, y: number, size: number): void {
+    ctx.textAlign = 'center';
+    ctx.font = `bold ${size}px monospace`;
+    ctx.fillStyle = '#14141e';
+    ctx.fillText(text, VIEW_W / 2 + 3, y + 3);
+    ctx.fillStyle = '#ffe94a';
+    ctx.fillText(text, VIEW_W / 2, y);
   }
 
   private drawAnnouncements(ctx: CanvasRenderingContext2D): void {
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffffff';
     if (this.phase === 'intro') {
-      ctx.font = 'bold 34px monospace';
-      ctx.fillText(this.phaseSf < 55 ? `ROUND ${this.round}` : 'FIGHT!', VIEW_W / 2, 150);
+      this.bigText(ctx, this.phaseSf < 55 ? `ROUND ${this.round}` : 'FIGHT!', 155, 40);
     } else if (this.phase === 'roundEnd') {
-      ctx.font = 'bold 40px monospace';
-      ctx.fillText(this.announce, VIEW_W / 2, 150);
+      this.bigText(ctx, this.announce, 155, 48);
     } else if (this.phase === 'matchOver') {
-      ctx.font = 'bold 34px monospace';
-      ctx.fillText(this.announce, VIEW_W / 2, 140);
+      this.bigText(ctx, this.announce, 145, 40);
       ctx.font = '14px monospace';
-      ctx.fillText('press ENTER for a rematch', VIEW_W / 2, 170);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('press ENTER for a rematch', VIEW_W / 2, 175);
     }
   }
 }

@@ -24,8 +24,17 @@ export interface AttackData {
   hitbox?: Rect;
 }
 
+export interface AppearancePalette {
+  skin: string;
+  gi: string;
+  giDark: string;
+  accent: string;
+}
+
 export interface CharacterData {
   name: string;
+  appearance: AppearancePalette;
+  altAppearance: AppearancePalette;
   health: number;
   walkF: number;
   walkB: number;

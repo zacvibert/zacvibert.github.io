@@ -1,5 +1,7 @@
 {
   "name": "FIGHTER ZERO",
+  "appearance": { "skin": "#e8b98e", "gi": "#3d7dd8", "giDark": "#2a58a3", "accent": "#f2f2f2" },
+  "altAppearance": { "skin": "#c98d63", "gi": "#d8503d", "giDark": "#a33427", "accent": "#f5d442" },
   "health": 800,
   "walkF": 2.4,
   "walkB": 1.8,
