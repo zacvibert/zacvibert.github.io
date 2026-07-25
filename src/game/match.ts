@@ -6,6 +6,7 @@ import { Fighter, GROUND_Y, neutralInput, type FrameInput } from './fighter';
 import { Projectile } from './projectile';
 import { drawFighterSprite } from './pose';
 import { animKeyFor, pickFrame, type SpriteSet } from './sprites';
+import type { StageSet } from './stage';
 import type { CharacterData } from './types';
 
 export const STAGE_W = 960;
@@ -30,6 +31,7 @@ export class Match {
   camX = 0;
   animTick = 0;
   spriteSets: [SpriteSet | null, SpriteSet | null] = [null, null];
+  stageSet: StageSet | null = null;
   announce = '';
   winner: 0 | 1 | null = null;
   private prevHeld: [PadState, PadState] = [emptyPad(), emptyPad()];
@@ -267,6 +269,12 @@ export class Match {
   }
 
   private drawStage(ctx: CanvasRenderingContext2D): void {
+    if (this.stageSet) {
+      ctx.fillStyle = '#0a0a12';
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      this.stageSet.draw(ctx, this.camX, this.animTick);
+      return;
+    }
     // sunset sky
     const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
     sky.addColorStop(0, '#2b1a4e');
