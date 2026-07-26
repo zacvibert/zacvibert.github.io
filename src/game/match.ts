@@ -259,6 +259,7 @@ export class Match {
     this.drawStage(ctx);
     for (const i of [0, 1] as const) this.drawFighter(ctx, i);
     this.drawProjectiles(ctx);
+    this.stageSet?.draw(ctx, this.camX, this.animTick, true);
     if (debug) this.drawDebug(ctx);
     this.drawHud(ctx);
     this.drawAnnouncements(ctx);

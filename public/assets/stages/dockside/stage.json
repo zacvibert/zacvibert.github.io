@@ -1,0 +1,40 @@
+{
+  "layers": [
+    {
+      "image": "sky.png",
+      "delta": 0.15
+    },
+    {
+      "image": "bolt.png",
+      "delta": 0.35,
+      "x": 520,
+      "y": 8,
+      "frames": 8,
+      "fps": 2
+    },
+    {
+      "image": "far.png",
+      "delta": 0.35,
+      "y": 30
+    },
+    {
+      "image": "main.png",
+      "delta": 1
+    },
+    {
+      "image": "lamp.png",
+      "delta": 1,
+      "x": 60,
+      "y": 60,
+      "frames": 3,
+      "fps": 6
+    },
+    {
+      "image": "rain.png",
+      "delta": 0,
+      "frames": 3,
+      "fps": 12,
+      "front": true
+    }
+  ]
+}

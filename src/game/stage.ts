@@ -10,6 +10,7 @@ export interface StageLayerDef {
   y?: number; // screen-space top (default 0)
   frames?: number; // animated strip: frame count (frame w = image w / frames)
   fps?: number; // animated strip playback (default 8)
+  front?: boolean; // draw in front of the fighters (rain, foreground props)
 }
 
 export interface StageMeta {
@@ -24,8 +25,9 @@ interface LoadedLayer {
 export class StageSet {
   constructor(public layers: LoadedLayer[]) {}
 
-  draw(ctx: CanvasRenderingContext2D, camX: number, animTick: number): void {
+  draw(ctx: CanvasRenderingContext2D, camX: number, animTick: number, front = false): void {
     for (const { img, def } of this.layers) {
+      if ((def.front ?? false) !== front) continue;
       const sx = Math.round((def.x ?? 0) - camX * def.delta);
       const sy = def.y ?? 0;
       if (def.frames && def.frames > 1) {
