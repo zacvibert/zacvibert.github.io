@@ -69,3 +69,24 @@ comes from frame data, not pixels.
 One file, one row: a 6-frame idle in `sheet.png` + minimal `frames.json`. That
 proves the entire pipeline (palette, anchor, export, import, in-game look)
 before any serious frame count is invested.
+
+## Path B — one image per animation (recommended when you make the art)
+
+You don't need animation strips to get your character in the game. Supply **one
+still PNG per animation** and run the ingest tool — it does background removal
+(plain white/green backdrops become transparency), trimming, uniform scaling,
+feet anchoring, sheet packing and frames.json generation automatically.
+
+1. Create one full-body PNG per animation: same character, side view facing
+   right, plain solid background, consistent size across images.
+2. Name each file by its animation key (see list above): `idle.png`, `5HP.png`,
+   `hitstun.png`, … `idle.png` is required — it sets the scale for everything.
+   A multi-frame strip is `walkF@6.png` (6 equal frames side by side).
+3. Put them in `art-src/<id>/poses/` — via GitHub web UI (branch → Add file →
+   Upload files) or locally — and run `node tools/ingest-character.mjs <id>`
+   (or ask Claude to run it and verify in-game).
+
+Starter set for a playable character: `idle`, `walkF`, `5HP`, `5HK`,
+`hitstun`, `knockdown` — six images. Missing keys are aliased where sensible
+(walkB→walkF, prejump/wakeup→crouch, launched/thrown→hitstun) and everything
+else falls back to the procedural renderer until you replace it.
