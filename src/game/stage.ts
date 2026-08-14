@@ -1,3 +1,5 @@
+import { fetchJson, loadImage } from '../engine/assets';
+
 // Image-based stages: public/assets/stages/<id>/stage.json lists parallax
 // layers (each a PNG, optionally an animated horizontal strip). When present,
 // image layers replace the procedural stage; otherwise the procedural stage
@@ -42,18 +44,14 @@ export class StageSet {
 }
 
 export async function loadStage(id: string): Promise<StageSet | null> {
-  const base = `${import.meta.env.BASE_URL}assets/stages/${id}`;
   try {
-    const res = await fetch(`${base}/stage.json`);
-    if (!res.ok) return null;
-    const meta = (await res.json()) as StageMeta;
+    const meta = await fetchJson<StageMeta>(`stages/${id}/stage.json`);
+    if (!meta) return null;
     const layers = await Promise.all(
-      meta.layers.map(async (def) => {
-        const img = new Image();
-        img.src = `${base}/${def.image}`;
-        await img.decode();
-        return { img, def };
-      }),
+      meta.layers.map(async (def) => ({
+        img: await loadImage(`stages/${id}/${def.image}`),
+        def,
+      })),
     );
     return new StageSet(layers);
   } catch {

@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "demo": "npm run build && node tools/build-standalone.mjs viktor-v-demo.html",
     "test": "vitest run"
   },
   "devDependencies": {

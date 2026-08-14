@@ -1,3 +1,5 @@
+import { fetchJson, loadImage } from '../engine/assets';
+
 // Sprite-sheet rendering: when a character folder in public/assets/characters/
 // provides a sheet.png + frames.json (see docs/SPRITE_SPEC.md), those
 // animations replace the procedural renderer one animation at a time.
@@ -15,6 +17,7 @@ export interface SheetMeta {
   cell: { w: number; h: number };
   anchor: { x: number; y: number }; // feet position inside a cell
   animations: Record<string, AnimDef>;
+  altSheet?: boolean; // set when a sheet-alt.png (P2 palette) is provided
 }
 
 export function animKeyFor(f: { state: string; moveId: string | null; airMoveId: string | null }): string {
@@ -57,27 +60,12 @@ export class SpriteSet {
   }
 }
 
-async function loadImage(src: string): Promise<HTMLImageElement> {
-  const img = new Image();
-  img.src = src;
-  await img.decode();
-  return img;
-}
-
 export async function loadSpriteSet(id: string, alt = false): Promise<SpriteSet | null> {
-  const base = `${import.meta.env.BASE_URL}assets/characters/${id}`;
   try {
-    const res = await fetch(`${base}/frames.json`);
-    if (!res.ok) return null;
-    const meta = (await res.json()) as SheetMeta;
-    let img: HTMLImageElement;
-    try {
-      img = await loadImage(`${base}/${alt ? 'sheet-alt.png' : 'sheet.png'}`);
-    } catch {
-      if (!alt) return null;
-      img = await loadImage(`${base}/sheet.png`); // alt palette optional
-    }
-    return new SpriteSet(img, meta);
+    const meta = await fetchJson<SheetMeta>(`characters/${id}/frames.json`);
+    if (!meta) return null;
+    const file = alt && meta.altSheet ? 'sheet-alt.png' : 'sheet.png';
+    return new SpriteSet(await loadImage(`characters/${id}/${file}`), meta);
   } catch {
     return null;
   }

@@ -90,3 +90,13 @@ Starter set for a playable character: `idle`, `walkF`, `5HP`, `5HK`,
 `hitstun`, `knockdown` — six images. Missing keys are aliased where sensible
 (walkB→walkF, prejump/wakeup→crouch, launched/thrown→hitstun) and everything
 else falls back to the procedural renderer until you replace it.
+
+## Offline demo build (single file)
+
+`npm run demo` produces **viktor-v-demo.html** — the entire game (code, sprite
+sheet, stage, rain) inlined into one file. Double-click it to play: no server,
+no install, no internet, nothing to deploy. Use it for laptop demos and for
+sending a build to someone. It is git-ignored, so it never ships to the site.
+
+For a P2 palette variant, add `sheet-alt.png` next to `sheet.png` and set
+`"altSheet": true` in frames.json.
