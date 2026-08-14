@@ -5,12 +5,12 @@ import { Match } from './game/match';
 import { loadSpriteSet, type SpriteSet } from './game/sprites';
 import { loadStage, type StageSet } from './game/stage';
 import type { CharacterData } from './game/types';
-import fighterZero from './characters/fighter-zero.json';
+import viktorV from './characters/viktor-v.json';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const ctx = setupCanvas(canvas);
 const input = new InputManager();
-const data = fighterZero as CharacterData;
+const data = viktorV as CharacterData;
 
 const DEFAULT_STAGE = 'dockside';
 

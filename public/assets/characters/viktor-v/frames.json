@@ -1,0 +1,138 @@
+{
+  "cell": {
+    "w": 164,
+    "h": 134
+  },
+  "anchor": {
+    "x": 82,
+    "y": 130
+  },
+  "animations": {
+    "2HK": {
+      "row": 0,
+      "frames": 1,
+      "sync": "move"
+    },
+    "2LK": {
+      "row": 1,
+      "frames": 1,
+      "sync": "move"
+    },
+    "5HK": {
+      "row": 2,
+      "frames": 1,
+      "sync": "move"
+    },
+    "5HP": {
+      "row": 3,
+      "frames": 1,
+      "sync": "move"
+    },
+    "5LK": {
+      "row": 4,
+      "frames": 1,
+      "sync": "move"
+    },
+    "5LP": {
+      "row": 5,
+      "frames": 1,
+      "sync": "move"
+    },
+    "5MK": {
+      "row": 6,
+      "frames": 1,
+      "sync": "move"
+    },
+    "5MP": {
+      "row": 7,
+      "frames": 1,
+      "sync": "move"
+    },
+    "DPP": {
+      "row": 8,
+      "frames": 1,
+      "sync": "move"
+    },
+    "QCFP": {
+      "row": 9,
+      "frames": 1,
+      "sync": "move"
+    },
+    "blockstun": {
+      "row": 10,
+      "frames": 1,
+      "loop": false
+    },
+    "crouch": {
+      "row": 11,
+      "frames": 1
+    },
+    "hitstun": {
+      "row": 12,
+      "frames": 1,
+      "loop": false
+    },
+    "idle": {
+      "row": 13,
+      "frames": 1
+    },
+    "jK": {
+      "row": 14,
+      "frames": 1,
+      "sync": "move"
+    },
+    "jP": {
+      "row": 15,
+      "frames": 1,
+      "sync": "move"
+    },
+    "jump": {
+      "row": 16,
+      "frames": 1
+    },
+    "knockdown": {
+      "row": 17,
+      "frames": 1,
+      "loop": false
+    },
+    "throw": {
+      "row": 18,
+      "frames": 1,
+      "sync": "move"
+    },
+    "victory": {
+      "row": 19,
+      "frames": 1
+    },
+    "walkF": {
+      "row": 20,
+      "frames": 1
+    },
+    "walkB": {
+      "row": 20,
+      "frames": 1
+    },
+    "prejump": {
+      "row": 11,
+      "frames": 1
+    },
+    "wakeup": {
+      "row": 11,
+      "frames": 1
+    },
+    "launched": {
+      "row": 12,
+      "frames": 1,
+      "loop": false
+    },
+    "thrown": {
+      "row": 12,
+      "frames": 1,
+      "loop": false
+    },
+    "throwHold": {
+      "row": 13,
+      "frames": 1
+    }
+  }
+}

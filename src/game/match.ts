@@ -350,7 +350,7 @@ export class Match {
       (this.phase === 'roundEnd' || this.phase === 'matchOver') &&
       f.health > 0 && this.players[1 - i].health < f.health;
     const set = this.spriteSets[i];
-    const key = animKeyFor(f);
+    const key = celebrating && set?.has('victory') ? 'victory' : animKeyFor(f);
     if (set?.has(key)) {
       const m = f.state === 'attack' ? f.move : f.state === 'jump' ? f.airMove : null;
       const total = m ? m.startup + m.active + m.recovery : undefined;
