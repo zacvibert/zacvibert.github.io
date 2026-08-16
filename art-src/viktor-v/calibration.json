@@ -1,0 +1,23 @@
+{
+  "_note": "Scale corrections judged from contact-sheet.png so the mask/head reads the same size in every pose. Regenerate with: node tools/ingest-character.mjs viktor-v --contact",
+  "charH": 165,
+  "autoLevel": [],
+  "poses": {
+    "crouch":    { "scale": 0.90 },
+    "2LK":       { "scale": 0.94 },
+    "2HK":       { "scale": 0.94 },
+    "5HK":       { "scale": 0.93 },
+    "5MK":       { "scale": 0.94 },
+    "5MP":       { "scale": 0.95 },
+    "5LP":       { "scale": 0.93 },
+    "QCFP":      { "scale": 0.93 },
+    "blockstun": { "scale": 0.93 },
+    "throw":     { "scale": 0.92 },
+    "jP":        { "scale": 0.88 },
+    "jK":        { "scale": 0.94 },
+    "knockdown": { "scale": 0.94 },
+    "5HP":       { "scale": 1.02 },
+    "jump":      { "scale": 1.05 },
+    "DPP":       { "scale": 1.10 }
+  }
+}

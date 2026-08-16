@@ -86,6 +86,27 @@ feet anchoring, sheet packing and frames.json generation automatically.
    Upload files) or locally — and run `node tools/ingest-character.mjs <id>`
    (or ask Claude to run it and verify in-game).
 
+Multi-frame animations: numbered files (`5HP_1.png`, `5HP_2.png`, `5HP_3.png`)
+are assembled into one animation in order; a single pre-made strip works too
+(`walkF@6.png`). See docs/PRODUCTION_PIPELINE.md for the full frame manifest.
+
+### Scale calibration
+
+`art-src/<id>/calibration.json` controls sizing:
+
+```json
+{ "charH": 165, "autoLevel": [], "poses": { "crouch": { "scale": 0.90, "dy": 0 } } }
+```
+
+- `charH` — the character's on-screen height in game pixels (165 ≈ correct human
+  scale against the dockside stage; the screen is 360 tall).
+- `poses[key].scale` — per-pose correction, needed when source art is drawn at
+  inconsistent zoom. Judge these from the contact sheet.
+- `poses[key].dx/dy` — nudge a pose that sits off its feet.
+- Run with `--contact` to write `art-src/<id>/contact-sheet.png`: every pose
+  feet-aligned with a head-height reference line, which makes scale errors
+  obvious at a glance.
+
 Starter set for a playable character: `idle`, `walkF`, `5HP`, `5HK`,
 `hitstun`, `knockdown` — six images. Missing keys are aliased where sensible
 (walkB→walkF, prejump/wakeup→crouch, launched/thrown→hitstun) and everything
